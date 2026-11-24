@@ -1,0 +1,38 @@
+class ScannerThread extends Thread {
+    private final int station, scripts;
+    ScannerThread(int station, int scripts) {
+        this.station = station; this.scripts = scripts;
+    }
+    public void run() {
+        try {
+            Thread.sleep(200);
+            System.out.println("Station " + station + " scanned " + scripts);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+class ScannerTask implements Runnable {
+    private final int station, scripts;
+    ScannerTask(int station, int scripts) {
+        this.station = station; this.scripts = scripts;
+    }
+    public void run() {
+        try {
+            Thread.sleep(200);
+            System.out.println("Station " + station + " scanned " + scripts);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+}
+public class ScannerDemo {
+    public static void main(String[] args) throws InterruptedException {
+        Thread[] stations = new Thread[4];
+        for (int i = 0; i < 4; i++)
+            stations[i] = new Thread(new ScannerTask(i + 1, 25));
+        for (Thread t : stations) t.start();
+        for (Thread t : stations) t.join();
+        System.out.println("All stations completed.");
+    }
+}
