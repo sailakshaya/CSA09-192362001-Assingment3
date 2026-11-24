@@ -1,0 +1,26 @@
+import java.io.*;
+public class ManualReport {
+    public static void main(String[] args) {
+        BufferedReader reader = null;
+        PrintWriter writer = null;
+        try {
+            reader = new BufferedReader(new FileReader("sales.txt"));
+            writer = new PrintWriter(new FileWriter("report.txt"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                writer.println(line);
+            }
+            System.out.println("Report generated");
+        } catch (IOException e) {
+            System.out.println("Report failed: " + e.getMessage());
+        } finally {
+            if (writer != null) writer.close();
+            if (reader != null) {
+                try { reader.close(); }
+                catch (IOException e) {
+                    System.out.println("Reader close failed: " + e.getMessage());
+                }
+            }
+        }
+    }
+}
