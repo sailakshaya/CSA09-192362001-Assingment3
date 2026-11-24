@@ -1,0 +1,45 @@
+import java.io.*;
+import java.util.*;
+
+class InsufficientFundsException extends Exception {
+    InsufficientFundsException(String message) { super(message); }
+}
+
+public class ATMDemo {
+    static void withdraw(double balance, double amount)
+            throws InsufficientFundsException {
+        if (amount < 0) throw new IllegalArgumentException("Amount cannot be negative");
+        if (amount > balance)
+            throw new InsufficientFundsException("Insufficient account balance");
+        System.out.println("Withdrawal successful: " + amount);
+        System.out.println("Remaining balance: " + (balance - amount));
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        try {
+            System.out.print("Enter account number: ");
+            String account = sc.nextLine();
+            System.out.print("Enter withdrawal amount: ");
+            double amount = sc.nextDouble();
+            // Simulated card-reader file access
+            try (FileInputStream card = new FileInputStream("card.txt")) {
+                System.out.println("Card reader file verified.");
+            }
+            withdraw(5000, amount);
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input: enter a numeric amount.");
+        } catch (IllegalArgumentException e) {
+            System.out.println("Invalid withdrawal: " + e.getMessage());
+        } catch (InsufficientFundsException e) {
+            System.out.println("Transaction declined: " + e.getMessage());
+        } catch (FileNotFoundException e) {
+            System.out.println("Card reader file is missing.");
+        } catch (IOException e) {
+            System.out.println("Card reader error: " + e.getMessage());
+        } finally {
+            System.out.println("ATM session completed. Please take your card.");
+            sc.close();
+        }
+    }
+}
