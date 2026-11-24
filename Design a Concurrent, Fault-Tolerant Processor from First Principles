@@ -1,0 +1,56 @@
+import java.nio.file.*;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.*;
+
+public class ResultProcessor {
+    static class Result {
+        final String file;
+        final int score;
+        Result(String file, int score) { this.file = file; this.score = score; }
+    }
+    static class Outcome {
+        final Result result;
+        final String error;
+        Outcome(Result r, String e) { result = r; error = e; }
+        static Outcome success(Result r) { return new Outcome(r, null); }
+        static Outcome failure(String e) { return new Outcome(null, e); }
+    }
+    static Outcome process(Path path) {
+        try {
+            String value = Files.readString(path).trim();
+            int score = Integer.parseInt(value);
+            if (score < 0 || score > 100)
+                throw new IllegalArgumentException("Score outside 0–100");
+            return Outcome.success(new Result(path.toString(), score));
+        } catch (IOException | NumberFormatException |
+                 IllegalArgumentException e) {
+            return Outcome.failure(path + ": " + e.getMessage());
+        }
+    }
+    public static void main(String[] args) throws Exception {
+        int poolSize = 4; // repeat with 1, 2 and 8
+        ExecutorService pool = Executors.newFixedThreadPool(poolSize);
+        List<Future<Outcome>> futures = new ArrayList<>();
+        for (int i = 1; i <= 10000; i++) {
+            Path file = Paths.get("scores", "score" + i + ".txt");
+            Callable<Outcome> task = () -> process(file);
+            futures.add(pool.submit(task));
+        }
+        pool.shutdown();
+
+        int success = 0, failure = 0;
+        ConcurrentLinkedQueue<String> errors = new ConcurrentLinkedQueue<>();
+        for (Future<Outcome> future : futures) {
+            Outcome outcome = future.get();
+            if (outcome.result != null) success++;
+            else {
+                failure++;
+                errors.add(outcome.error);
+            }
+        }
+        System.out.println("Successful files: " + success);
+        System.out.println("Failed files: " + failure);
+        for (String error : errors) System.out.println(error);
+    }
+}
